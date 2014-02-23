@@ -1,0 +1,73 @@
+body {
+    margin: 0 0 2em 0;
+    padding: 0;
+    color: #666;
+    line-height: 1.5;
+    font: 16px "Libre Baskerville", "Lucida Grande", Helvetica, Arial, sans-serif;
+}
+p {
+    line-height: 1.5;
+}
+h1 {
+    margin: 0;
+    font-size: 2em;
+    line-height: 1;
+}
+
+h2 {
+    margin-bottom: 0.5em;
+}
+h2 span {
+    float: right;
+    margin-right: 1em;
+    font-size: 0.75em;
+    color: #E9573F;
+}
+
+a {
+    color: #E9573F;
+    text-decoration: none;
+}
+a:hover {
+    text-decoration: underline;
+}
+
+pre {
+    font-size: 14px;
+}
+
+.test {
+    min-height: 100px;
+}
+
+.test img {
+    display: block;
+}
+
+.test input[type=button] {
+    margin-top: 1em;
+    padding: 0.5em 2em;
+}
+
+.editor {
+    padding: 8px;
+    min-height: 5em;
+    border: 1px solid #CCC;
+}
+
+.header {
+    padding: 3em 0 1em;
+    color: #FFF;
+    background: #E9573F;
+}
+
+.header a {
+    color: #FFF;
+}
+
+.main {
+    margin: 0 auto;
+    padding: 0 1em;
+    max-width: 640px;
+    overflow: hidden;
+}

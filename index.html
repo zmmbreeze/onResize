@@ -2,36 +2,59 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Test resize event</title>
+    <title>onResize.js</title>
+    <meta name="Keywords" content="resize,event,any,element,javascript,browser,onResize.js">
+    <meta name="Description" content="resize event on any element.">
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Libre+Baskerville">
+    <link rel="stylesheet" href="assets/normalize.css" />
+    <link rel="stylesheet" href="assets/index.css" />
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+    <script src="assets/index.js"></script>
 </head>
 <body>
-<div id="test">
-    <img src="http://placehold.it/350x150" alt="" />
-    <textarea name="" cols="30" rows="10"></textarea>
-    <a href="#">xxxx</a>
-</div>
-<script type="text/javascript" src="onResize.js"></script>
-<script type="text/javascript">
-/*
-var observer = new MutationObserver(function (records) {
-    console.log(records);
-});
-var test = document.getElementById('test').childNodes;
-var e;
-for (var i = 0,l = test.length; i < l; i++) {
-    e = test[i];
-    if (e.nodeType === 1) {
-        observer.observe(e, {
-            attributes: true
-        });
-    }
-}
-*/
-onResize(document.getElementsByTagName('img')[0])
+    <div class="header">
+        <div class="main">
+            <h1>onResize.js</h1>
+            <p>Basically browser only native support resize event on `window` object. But it will be useful if any element can trigger resize event.</p>
+            <p>Now onResize.js can make any kind of element support resize event. onResize.js use <a href="https://developer.mozilla.org/en-US/docs/Web/API/MutationObserver" target="_blank">MutationObserver</a> to detect resize event and use setTimeout as fallback.</p>
+        </div>
+    </div>
+
+    <div class="main">
+        <pre>onResize(document.getElementsByTagName('img')[0])
     .then(function (v, oldV) {
-        console.log(v, oldV);
+        console.log('oldValue:' + oldV.width + 'x' + oldV.height);
+        console.log('newValue:' + v.width + 'x' + v.height);
     });
-</script>
+        </pre>
+        <h2>Image<span></span></h2>
+        <div class="test">
+            <img src="http://placehold.it/600x150" alt="" />
+            <input type="button" value="Update"/>
+        </div>
+
+        <!--
+        <h2>Textarea<span></span></h2>
+        <div class="test">
+            <textarea cols="30" rows="10" class="editor">Resize it.</textarea>
+        </div>
+        -->
+
+        <h2>Block element<span></span></h2>
+        <div class="test">
+            <div contenteditable class="editor">
+                Change Text
+            </div>
+        </div>
+
+        <h2>Inline element<span></span></h2>
+        <div class="test">
+            <span contenteditable class="editor">
+                Change Text.
+            </span>
+        </div>
+    </div>
+
+    <script src="src/onResize.js"></script>
 </body>
 </html>
