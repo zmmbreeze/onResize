@@ -1,40 +1,76 @@
 (function (win) {
+    /**
+     * onResize($('div')[0])
+     *     .then(function (v, oldV) {
+     *         console.log(v.width, v.height);
+     *     });
+     * @param {Element} element watched element.
+     * @param {Array=} attr watched attributes, like 'width' or 'height'.
+     * @return {Resize} resize instance.
+     */
     win.onResize = function (element, attr) {
         return new Resize(element, attr);
     };
 
     var Util = {
-        cbs: {},
-        bind: function (element, event, cb) {
-            Util.cbs[event] = Util.cbs[event] || [];
-            Util.cbs[event].push(cb);
+        events: {},
+        /**
+         * bind event.
+         * @param {Element} element binded element.
+         * @param {string} event event name.
+         * @param {Function} cb callback.
+         */
+        on: function (element, event, cb) {
+            Util.events[event] = Util.events[event] || [];
+            Util.events[event].push({
+                element: element,
+                callback: cb
+            });
             if (element.addEventListener) {
                 element.addEventListener(event, cb, false);
             } else {
                 element.attachEvent(event, cb);
             }
         },
+        /**
+         * unbind event.
+         * @param {Element} element unbinded element.
+         * @param {string} event event name.
+         */
         off: function (element, event) {
-            var cbs = Util.cbs[event];
-            if (!cbs) {
+            var events = Util.events[event];
+            if (!events) {
                 return;
             }
 
-            for (var i = 0, l = cbs.length; i < l; i++) {
-                var cb = cbs[i];
+            for (var i = 0, l = events.length; i < l; i++) {
+                var e = events[i];
+                if (e.element !== element) {
+                    continue;
+                }
+
                 if (element.removeEventListener) {
-                    element.removeEventListener(event, cb, false);
+                    element.removeEventListener(event, e.callback, false);
                 } else {
-                    element.attachEvent(event, cb);
+                    element.attachEvent(event, e.callback);
                 }
             }
         }
     };
 
+    /**
+     * Interval class.
+     * Using MutationObserver if supported, and using setTimeout as fallback.
+     * @constructor
+     */
     var Interval = function () {
         this.resizes = [];
     };
 
+    /**
+     * get or create single instance
+     * @return {Interval} interval instance.
+     */
     Interval.getInstance = function () {
         if (this.singleInstance) {
             return this.singleInstance;
@@ -50,7 +86,6 @@
         start = function () {
             var me = this;
             function callback() {
-                console.log(arguments[0]);
                 if (me.timeout) {
                     return;
                 }
@@ -62,6 +97,8 @@
                     me.timeout = null;
                 }, 250);
             }
+
+            // observer
             me.observer = new MutationObserver(callback);
             me.observer.observe(win.document.body, {
                 childList: true,
@@ -69,6 +106,9 @@
                 characterData: true,
                 subtree: true
             });
+
+            // bind window resize event
+            Util.on(win, 'resize', callback);
         };
         stop = function () {
             if (this.observer) {
@@ -79,6 +119,9 @@
             if (this.timeout) {
                 win.clearTimeout(this.timeout);
             }
+
+            // unbind resize event
+            Util.off(win, 'resize');
         };
     } else {
         start = function () {
@@ -101,6 +144,9 @@
         };
     }
 
+    /**
+     * start interval.
+     */
     Interval.prototype.start = function () {
         if (!this.started) {
             this.started = true;
@@ -108,17 +154,30 @@
         }
     };
 
+    /**
+     * stop interval.
+     */
     Interval.prototype.stop = function () {
         if (this.started) {
             this.started = false;
             stop.call(this);
         }
     };
+
+    /**
+     * push new resize instance.
+     * @param {Resize} resize .
+     */
     Interval.prototype.push = function (resize) {
         this.start();
         this.resizes.push(resize);
     };
-    Interval.prototype.pop = function (resize) {
+
+    /**
+     * remove resize instance.
+     * @param {Resize} resize .
+     */
+    Interval.prototype.remove = function (resize) {
         for (var i = 0, l = this.resizes.length; i < l; i++) {
             if (this.resizes[i] === resize) {
                 this.resizes.splice(i, 1);
@@ -130,11 +189,15 @@
         }
     };
 
+    /**
+     * Resize class.
+     * @constructor
+     * @param {Element} element watched element.
+     * @param {Array=} attr watched attributes, like 'width' or 'height'.
+     */
     var Resize = function (element, attr) {
         this.e = element;
-        this.detectAttrs = attr
-            ? [attr]
-            : ['width', 'height'];
+        this.detectAttrs = attr ? [attr] : ['width', 'height'];
         this.v = {};
         this.oldV = {};
 
@@ -152,6 +215,10 @@
         });
     };
 
+    /**
+     * test if size changed.
+     * @return {boolean} changed.
+     */
     Resize.prototype.isChanged = function () {
         var changed = false;
         for (var i = 0, l = this.detectAttrs.length; i < l; i++) {
@@ -166,6 +233,11 @@
         return changed;
     };
 
+    /**
+     * fire event.
+     * @param {Object} data .
+     * @return {Resize} this;
+     */
     Resize.prototype.fire = function (data) {
         this.eventQueue = this.eventQueue || {};
         var queue = this.eventQueue,
@@ -183,6 +255,12 @@
         return r;
     };
 
+    /**
+     * bind change event callback.
+     * @param {Function} callback .
+     * @param {Object} context .
+     * @return {Resize} this.
+     */
     Resize.prototype.then = function (callback, context) {
         this.eventQueue = this.eventQueue || [];
         this.eventQueue.push({
@@ -192,6 +270,10 @@
         return this;
     };
 
+    /**
+     * detect size change.
+     * @return {Resize} this.
+     */
     Resize.prototype.detect = function () {
         if (this.isChanged()) {
             this.fire(this.v, this.oldV);
@@ -199,18 +281,11 @@
         return this;
     };
 
+    /**
+     * dispose resize instance.
+     */
     Resize.prototype.dispose = function () {
-        Interval.getInstance().pop(this);
+        Interval.getInstance().remove(this);
         this.e = null;
     };
-
-    /*
-    var MutationObserver = win.MutationObserver || win.webkitMutationObserver;
-    if (MutationObserver) {
-        Resize.prototype.detect = function () {
-            
-        };
-    } else {
-    */
-    //}
 })(window);
